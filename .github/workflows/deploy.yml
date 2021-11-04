@@ -1,0 +1,37 @@
+name: Deploy with gh-pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: setup node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+
+      - name: setup git
+        run: |
+          git config --local user.name 'github-actions[bot]'
+          git config --local user.email 'github-actions[bot]@users.noreply.github.com'
+          git remote set-url origin https://github.com/${GITHUB_REPOSITORY}.git
+
+      - name: install dependencies
+        run: npm ci
+
+      - name: build
+        run: npm run build:github
+
+      - name: deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build
+          allow_empty_commit: true
