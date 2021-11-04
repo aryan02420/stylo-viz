@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+
+		
+
+		<link rel="modulepreload" href="/stylo-viz/_app/start-2c29fb21.js">
+		<link rel="modulepreload" href="/stylo-viz/_app/chunks/vendor-99208ee0.js">
+		<link rel="modulepreload" href="/stylo-viz/_app/pages/__layout.svelte-3051411e.js">
+		<link rel="modulepreload" href="/stylo-viz/_app/pages/index.svelte-a7764bf4.js">
+		<link rel="stylesheet" href="/stylo-viz/_app/assets/start-d5b4de3e.css">
+		<link rel="stylesheet" href="/stylo-viz/_app/assets/pages/__layout.svelte-d32a2cf9.css">
+
+		<script type="module">
+			import { start } from "/stylo-viz/_app/start-2c29fb21.js";
+			start({
+				target: document.querySelector("#svelte"),
+				paths: {"base":"/stylo-viz","assets":""},
+				session: {},
+				host: location.host,
+				route: true,
+				spa: false,
+				trailing_slash: "never",
+				hydrate: {
+					status: 200,
+					error: null,
+					nodes: [
+						import("/stylo-viz/_app/pages/__layout.svelte-3051411e.js"),
+						import("/stylo-viz/_app/pages/index.svelte-a7764bf4.js")
+					],
+					page: {
+						host: location.host, // TODO this is redundant
+						path: "\u002F",
+						query: new URLSearchParams(""),
+						params: {}
+					}
+				}
+			});
+		</script>
+  </head>
+  <body>
+    <div id="svelte">
+
+
+<h1>Stylo-viz</h1>
+<h1>Welcome to SvelteKit</h1>
+<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation
+</p>
+<p><a href="about">about</a></p>
+<footer><a href="https://github.com/aryan02420/stylometric-analysis">Github</a></footer>
+
+
+
+			
+		</div>
+  </body>
+</html>
