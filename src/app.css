@@ -4,6 +4,6 @@
 
 @layer base {
   a {
-    @apply text-blue-700 underline;
+    @apply text-red-700 underline;
   }
 }
