@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import * as d3 from 'd3';
-  import _, { template } from 'underscore';
-  import data from '../../../stylometric-analysis/output/plot.json';
+  import _, { keys, template } from 'underscore';
+  import data from '../../../stylometric-analysis/output/plot_all.json';
 
   let unknown = {
     common_words_distribution: new Array(100).fill(0),
@@ -16,6 +16,8 @@
     av_words_per_para: 0,
   };
   let unknown_str = JSON.stringify(unknown, null, 2);
+
+  let selected = 'unknown';
 
   console.log(data);
 
@@ -34,11 +36,13 @@
     '#00bfa0',
   ];
 
-  const author = [...Object.keys(data)];
+  const author = [...Array.from(new Set(Object.keys(data).map((x) => x.split('.')[0]))), 'unknown'];
 
   function getSeries(name: string) {
-    const uk = new Array(5).fill(unknown[name]);
-    return [...author.map((x) => data[x][name]), uk];
+    return [
+      ...Object.entries(data).map(([key, val]) => [key, val[name]]),
+      ['unknown', unknown[name]],
+    ];
   }
 
   function getChart(name: string) {
@@ -50,7 +54,7 @@
     return temp.selectAll('path').data(getSeries(name));
   }
 
-  function plotMedian(
+  function plotLine(
     selection: d3.Selection<d3.EnterElement, any, d3.BaseType, unknown>,
     range: [number, number, number, number]
   ) {
@@ -69,7 +73,7 @@
           .domain([range[2], range[3]])
           .range([height - 10, 10]);
 
-        let y = d[2];
+        let y = d[1];
         let x = [...Array(y.length).keys()];
 
         return d3
@@ -81,53 +85,22 @@
         );
       })
       .attr('fill', 'transparent')
-      .attr('stroke', (d, i) => colors[i])
+      .attr('stroke', (d) => {
+        const a = d[0].split('.')[0];
+        const i = author.indexOf(a);
+        if (selected === 'unknown') {
+          if (a !== 'unknown') return colors[i] + '11';
+          return '#000000ff';
+        } else {
+          if (a === selected) return colors[i] + '11';
+          if (a !== 'unknown') return '#ffffff00';
+          return '#000000ff';
+        }
+      })
       .attr('stroke-width', '2px')
       .attr('data-type', 'median')
       .attr('data-author', (d, i) => author[i])
       .attr('title', (d, i) => author[i]);
-
-    selection.exit().remove();
-  }
-
-  function plotIQR(
-    selection: d3.Selection<d3.EnterElement, any, d3.BaseType, unknown>,
-    range: [number, number, number, number]
-  ) {
-    selection
-      .enter()
-      .append('path')
-      // @ts-ignore
-      .merge(selection)
-      .attr('d', (d) => {
-        const walkX = d3
-          .scaleLinear()
-          .domain([range[0], range[1]])
-          .range([10, width - 10]);
-        const walkY = d3
-          .scaleLinear()
-          .domain([range[2], range[3]])
-          .range([height - 10, 10]);
-
-        let y1 = d[1];
-        let y3 = d[3];
-        let x = [...Array(y1.length).keys()];
-
-        let top = _.zip(x, y3);
-        let bottom = _.zip(x, y1);
-
-        return d3
-          .line()
-          .x((d) => walkX(d[0]))
-          .y((d) => walkY(d[1]))(
-          // @ts-ignore
-          [...top, ...bottom.reverse()]
-        );
-      })
-      .attr('fill', (d, i) => colors[i])
-      .attr('stroke', 'transparent')
-      .attr('data-type', 'iqr')
-      .attr('data-author', (d, i) => author[i]);
 
     selection.exit().remove();
   }
@@ -151,9 +124,9 @@
           .domain([range[0], range[1]])
           .range([height - 10, 10]);
 
-          console.log({d});
-          
-        let y = [d[2], d[2]];
+        console.log({ d });
+
+        let y = [d[1], d[1]];
         let x = [0, 1];
 
         return d3
@@ -165,7 +138,18 @@
         );
       })
       .attr('fill', 'transparent')
-      .attr('stroke', (d, i) => colors[i])
+      .attr('stroke', (d) => {
+        const a = d[0].split('.')[0];
+        const i = author.indexOf(a);
+        if (selected === 'unknown') {
+          if (a !== 'unknown') return colors[i] + '44';
+          return '#000000ff';
+        } else {
+          if (a === selected) return colors[i] + '44';
+          if (a !== 'unknown') return '#ffffff00';
+          return '#000000ff';
+        }
+      })
       .attr('data-type', 'median')
       .attr('data-author', (d, i) => author[i]);
 
@@ -177,26 +161,19 @@
     unknown = JSON.parse(unknown_str);
     let chart;
     chart = getChart('common_words_distribution');
-    plotIQR(chart, [0, 99, 0, 0.6]);
-    plotMedian(chart, [0, 99, 0, 0.6]);
+    plotLine(chart, [0, 99, 0, 0.1]);
     chart = getChart('punct_distribution');
-    plotIQR(chart, [0, 12, 0, 0.3]);
-    plotMedian(chart, [0, 12, 0, 0.3]);
+    plotLine(chart, [0, 12, 0, 0.1]);
     chart = getChart('stop_words_distribution');
-    plotIQR(chart, [0, 178, 0, 1.2]);
-    plotMedian(chart, [0, 178, 0, 1.2]);
+    plotLine(chart, [0, 178, 0, 0.2]);
     chart = getChart('word_len_distribution');
-    plotIQR(chart, [0, 14, 0, 1.1]);
-    plotMedian(chart, [0, 14, 0, 1.1]);
+    plotLine(chart, [0, 14, 0, 0.3]);
     chart = getChart('filtered_word_len_distribution');
-    plotIQR(chart, [0, 14, 0, 1.1]);
-    plotMedian(chart, [0, 14, 0, 1.1]);
+    plotLine(chart, [0, 14, 0, 0.3]);
     chart = getChart('stop_word_len_distribution');
-    plotIQR(chart, [0, 14, 0, 1.1]);
-    plotMedian(chart, [0, 14, 0, 1.1]);
+    plotLine(chart, [0, 14, 0, 0.5]);
     chart = getChart('tag_distribution');
-    plotIQR(chart, [0, 44, 0, 1.1]);
-    plotMedian(chart, [0, 44, 0, 1.1]);
+    plotLine(chart, [0, 44, 0, 0.2]);
     chart = getChart('av_words_per_sent');
     plotPoint(chart, [0, 60]);
     chart = getChart('av_words_per_para');
@@ -208,6 +185,13 @@
 
 <div class="mx-auto max-w-3xl shadow-xl rounded-md mb-16">
   <textarea class="w-full h-72" bind:value={unknown_str} on:input={update} />
+</div>
+<div>
+  <select bind:value={selected} on:change={update}>
+    {#each author as a, i}
+      <option value={a}>{a}</option>
+    {/each}
+  </select>
 </div>
 <div
   class="fixed right-2 bottom-2 py-1 px-2 bg-white/50 border border-gray-600 rounded-md backdrop-blur-sm"
@@ -232,7 +216,7 @@
   <svg id="av_words_per_para" />
 </div>
 
-<style lang="postcss">
+<style scoped lang="postcss">
   :global(body) {
     @apply m-4 bg-warmGray-50;
   }
@@ -241,16 +225,16 @@
     @apply border-2 border-gray-600 rounded-md m-2 bg-white;
   }
 
-  :global([data-type='iqr']) {
+  :global(.iqr) {
     @apply opacity-5;
     position: relative;
     z-index: 1;
   }
-  :global([data-type='median']) {
+  :global(.median) {
     position: relative;
     z-index: 0;
   }
-  :global([data-type='median']:hover) {
+  :global(.median:hover) {
     stroke-width: 4px;
     z-index: 99;
   }
